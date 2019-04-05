@@ -60,7 +60,7 @@ These instructions were written specifically for Mac.
 11. Try to open chromium on your pi. If it doesn't let you access the internet after waiting for 30 minutes, follow this [SO answer](https://raspberrypi.stackexchange.com/a/47715).
     * Instead of internationalistation options, you'll want localisation options.
 12. Set up the Pi SSH and VNC servers
-    1. Run `sudo rapsi-config` in a terminal window
+    1. Run `sudo raspi-config` in a terminal window
     2. Select `Interfacing Options`
     3. Navigate to and select `SSH`
     4. Choose `Yes`
@@ -73,11 +73,16 @@ These instructions were written specifically for Mac.
     9. You can also connect to the Pi with VNC. See 
        `https://www.raspberrypi.org/documentation/remote-access/vnc/README.md`
        for more information.
+    10. Change the hostname on the Pi to something you remember, maybe something printed on the Pi's case.  This is to make sure that the hostnames don't clash when we eventually put them on the same network.  
+        1. Change the file `/etc/hostname` from `raspberrypi` to the new hostname.
+        2. At the end of the file `/etc/hosts`, you will see `raspberrypi`.  Change that to the new hostname.
+        3. Reboot the Pi.
 13. Set up typescript + node on the Pi
     1. `curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -`
     2. Install node, `sudo apt-get install node`
-    3. Install TypeScript, `sudo npm install -g typescript`
-    4. Install nodemon, `sudo npm install -g nodemon`
+    3. Install npm, `sudo apt-get install npm`
+    4. Install TypeScript, `sudo npm install -g typescript`
+    5. Install nodemon, `sudo npm install -g nodemon`
 14. Set sshfs for editing code
     1. On your laptop run sudo apt-get install sshfs
     2. On your laptop run mkdir pi
