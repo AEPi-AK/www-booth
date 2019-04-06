@@ -12,5 +12,25 @@ export enum GamePhase {
 }
 
 export interface Puzzle {
+    grid: number[][],
+    ingredients: Tile[]
+}
 
+export interface Tile {
+    type: TileType,
+    color: Color
+}
+
+// named based on tetris tile names
+export enum TileType {
+    L,
+    O,
+    T,
+    Z
+}
+
+export enum Color {
+    Red,
+    Green,
+    Blue
 }
