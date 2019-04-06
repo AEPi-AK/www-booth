@@ -1,15 +1,11 @@
 {
-  "name": "client-monitor",
+  "name": "admin-console",
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
     "react-scripts": "2.1.8"
   },
   "dependencies": {
-    "@types/jest": "^24.0.11",
-    "@types/node": "^11.13.0",
-    "@types/react": "^16.8.12",
-    "@types/react-dom": "^16.8.3",
     "@types/socket.io-client": "^1.4.32",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
@@ -17,8 +13,8 @@
     "typescript": "^3.4.2"
   },
   "scripts": {
-    "start": "mkdir -p src/shared && cp ../shared/*.ts src/shared && PORT=3002 REACT_APP_MASTER=\"http://localhost:3000\" react-scripts start",
-    "deploy": "mkdir -p src/shared && cp ../shared/*.ts src/shared && PORT=3002 REACT_APP_MASTER=\"http://master-server.local:3000\" react-scripts start",
+    "start": "mkdir -p src/shared && cp ../shared/*.ts src/shared && PORT=3001 REACT_APP_MASTER=\"http://localhost:3000\" react-scripts start",
+    "deploy": "mkdir -p src/shared && cp ../shared/*.ts src/shared && PORT=3001 REACT_APP_MASTER=\"http://master-server.local:3000\" react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

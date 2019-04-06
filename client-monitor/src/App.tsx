@@ -43,12 +43,11 @@ class App extends Component<{}, State> {
   }
 
   updateGameState(gameState: GameState) {
-    let in_puzzle = gameState && gameState.puzzles && gameState.puzzles[0];
     this.setState({
       playing: gameState.phase === GamePhase.Playing,
-      squareMap: in_puzzle ?
+      squareMap: gameState && gameState.puzzles && gameState.puzzles[0] ?
         gameState.puzzles[0].grid.map(row => row.map(x => x === 1)) : null,
-      tiles: in_puzzle ? gameState.puzzles[0].ingredients : null,
+      tiles: gameState && gameState.puzzles && gameState.puzzles[0] ? gameState.puzzles[0].ingredients : null,
       solves: gameState.solves[0],
       time: gameState.time
     });

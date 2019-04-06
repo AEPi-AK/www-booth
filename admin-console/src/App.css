@@ -1,0 +1,12 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  width: 75%;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+
+}

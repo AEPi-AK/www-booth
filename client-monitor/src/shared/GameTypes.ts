@@ -1,8 +1,26 @@
+type maybePuzzle = Puzzle | null;
+
+export interface HardwareState {
+    stationA: {
+        plate: boolean,
+        monitor: boolean
+    },
+    stationB: {
+        plate: boolean,
+        monitor: boolean
+    },
+    stationC: {
+        plate: boolean,
+        monitor: boolean
+    },
+    adminConsole: boolean,
+}
+
 export interface GameState {
     phase: GamePhase,
     time: number,
-    puzzles: Puzzle[],
-    solves: number[]
+    puzzles: [maybePuzzle, maybePuzzle, maybePuzzle],
+    solves: [number, number, number]
 }
 
 export enum GamePhase {
