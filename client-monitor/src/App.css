@@ -15,7 +15,14 @@
   left: 0;
   width: 400px;
   height: 400px;
-  background-color: red;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.website-image {
+  max-width: 100%;
+  height: auto;
 }
 
 
@@ -37,4 +44,23 @@
   top: 25px;
   left: 450px;
   font-size: 24pt;
+}
+
+.timebox {
+  position: absolute;
+  top: 50px;
+  left: 450px;
+  font-size: 24pt;
+}
+
+.idlebox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
