@@ -1,0 +1,22 @@
+.square {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background-color: black;
+}
+
+.square-none {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.square-clear {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s 0.5s, opacity 0.5s linear;
+}
+
+@keyframes clarity {
+  0% { opacity: 100%; }
+  100% {opacity: 0%; }
+}

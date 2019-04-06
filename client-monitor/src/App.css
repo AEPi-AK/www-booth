@@ -1,0 +1,40 @@
+.App {
+  display: flex;
+  flex-direction: column;
+}
+
+.graphics {
+  position: relative;
+  width: 400px;
+  height: 400px;
+}
+
+.website {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 400px;
+  height: 400px;
+  background-color: red;
+}
+
+
+.tiles-container {
+  position: absolute;
+  top: 0;
+  left: 400px;
+  display: flex;
+  flex-direction: row;
+}
+
+.tile-container {
+  margin-top: 125px;
+  margin-left: 50px
+}
+
+.solvebox {
+  position: absolute;
+  top: 25px;
+  left: 450px;
+  font-size: 24pt;
+}
