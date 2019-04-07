@@ -42,8 +42,8 @@ def find_grid(img):
     x, y, w, h = cv2.boundingRect(border)
     return x, y, w, h
 
-
-def draw_outer_grid(imgFileName): # purely for testing
+# DEMO function
+def draw_outer_grid(imgFileName): 
     img = load_image_gs(imgFileName)
     thresh = threshold_image(img)
     x, y, w, h = find_grid(thresh)
