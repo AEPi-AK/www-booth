@@ -35,7 +35,8 @@ def find_grid(img):
                 max = i
         return contours[max]
 
-    contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    # cv2.RETR_EXTERNAL argument used to limit search to outermost contours
+    contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     border = find_largest_contour(contours)
 
     x, y, w, h = cv2.boundingRect(border)
