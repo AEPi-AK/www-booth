@@ -80,9 +80,50 @@ def check_color(r, g, b):
         return "Blue"
 
 
+# decorator function for 2D list
+# from Tomas Vancura
+def print_matrix(f):
+    # finds the maximum length of a sub-entry in the list.
+    def get_max_length(lst):
+        max_length = 0
+        for item in lst:
+            if isinstance(item, list):
+                for sub_item in item:
+                    sub_item_length = len(str(sub_item))
+                    if sub_item_length > max_length:
+                        max_length = sub_item_length
+        return max_length
+
+    # formats 2d list into n*n string
+    def format_matrix(*args):
+        f_result = f(*args)  # 2d list output of decorated function
+
+        # break out of formatting if not list
+        if not isinstance(f_result, list):
+            return f_result
+        else:
+            margin = get_max_length(f_result) * 3
+            format_result = ""
+
+            for item in f_result:
+                # break out of formatting if not 2D list
+                if not isinstance(item, list):
+                    return f_result
+                else:
+                    format_result += "[" + " " * (margin - 2)
+                    for sub_item in item:
+                        format_result += ("%" + "%d" % -margin + "s") % sub_item
+                    format_result += "]" + "\n"
+
+            print(format_result[:-1])  # ignores last "new line"
+        return f_result
+    return format_matrix
+
+
 # Given color image and x, y, w, h of grid border,
 # Returns 4x4 color matrix of the grid cells (Colors are either "Red", "Green", "Blue", or "Blank")
 # NOTE: assumes grid is 4x4
+@print_matrix
 def get_colors(img, x, y, w, h):
     cell_width = w / 4
     cell_height = h / 4
@@ -140,7 +181,6 @@ IMAGE = load_image(FILE)
 THRESH = load_threshold_image(FILE)
 X, Y, W, H = find_grid(THRESH)
 draw_outer_grid(FILE)
-print(get_colors(IMAGE, X, Y, W, H))
+get_colors(IMAGE, X, Y, W, H)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
-
