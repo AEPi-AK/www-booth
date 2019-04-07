@@ -30,6 +30,7 @@ export enum GamePhase {
 }
 
 export interface Puzzle {
+    id: number,
     grid: number[][],
     ingredients: Tile[]
 }

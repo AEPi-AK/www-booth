@@ -64,6 +64,7 @@ function generatePuzzle(solves: number) {
   }
 
   return {
+    id: recipe.id,
     grid: normalize(recipe.grid, 4, 4),
     ingredients: tiles
   }
@@ -100,6 +101,8 @@ function addPuzzleCallback(index: number) {
 io.on('connect', function (socket: SocketIO.Socket) {
   let name: null | string = null;
   console.log('a user connected: ' + socket.id);
+
+  updatedGameState();
 
   socket.on('disconnect', function () {
     if (name) {

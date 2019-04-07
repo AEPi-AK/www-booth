@@ -11,6 +11,7 @@ export var colors = [Color.Red, Color.Green, Color.Blue];
 export var combos = [
   [ // 1 tile, easy difficulty
     {
+      id: 0,
       ingredients: [[Z]],
       grid: [
         [0, 1],
@@ -19,6 +20,7 @@ export var combos = [
       ]
     },
     {
+      id: 1,
       ingredients: [[L]],
       grid: [
         [1, 1],
@@ -27,6 +29,7 @@ export var combos = [
       ]
     },
     {
+      id: 2,
       ingredients: [[O]],
       grid: [
         [0, 0],
@@ -35,6 +38,7 @@ export var combos = [
       ]
     },
     {
+      id: 3,
       ingredients: [[T]],
       grid: [
         [1, 0],
@@ -46,6 +50,7 @@ export var combos = [
 
   [ // 2 tiles, easy difficulty
     {
+      id: 4,
       ingredients: [[Z, Z]],
       grid: [
         [0, 1, 1, 0],
@@ -54,6 +59,7 @@ export var combos = [
       ]
     },
     {
+      id: 5,
       ingredients: [[L, L]],
       grid: [
         [1, 0, 0, 1],
@@ -62,6 +68,7 @@ export var combos = [
       ]
     },
     {
+      id: 6,
       ingredients: [[O, O]],
       grid: [
         [0, 0, 0, 0],
@@ -70,6 +77,7 @@ export var combos = [
       ]
     },
     {
+      id: 7,
       ingredients: [[T, T]],
       grid: [
         [1, 0, 0, 1],
@@ -81,6 +89,7 @@ export var combos = [
 
   [ // 2 tiles, medium difficulty
     {
+      id: 8,
       ingredients: [[Z, T]],
       grid: [
         [0, 1, 0, 0],
@@ -89,6 +98,7 @@ export var combos = [
       ]
     },
     {
+      id: 9,
       ingredients: [[O, T], [L, T]],
       grid: [
         [0, 1, 0, 0],
@@ -97,6 +107,7 @@ export var combos = [
       ]
     },
     {
+      id: 10,
       ingredients: [[Z, Z], [L, L]],
       grid: [
         [0, 1, 0, 0],
@@ -105,6 +116,7 @@ export var combos = [
       ]
     },
     {
+      id: 11,
       ingredients: [[Z, L], [L, O]],
       grid: [
         [1, 1, 0],
@@ -116,6 +128,7 @@ export var combos = [
 
   [ // 3 tiles, medium difficulty
     {
+      id: 12,
       ingredients: [[Z, L, L], [L, L, O], [L, T, T]],
       grid: [
         [1, 1, 1, 1],
@@ -127,6 +140,7 @@ export var combos = [
 
   [ // 3tiles, hard difficulty
     {
+      id: 13,
       ingredients: [[Z, Z, T], [L, L, T], [O, O, T], [L, O, T], [Z, L, T]],
       grid: [
         [0, 1, 0, 0],
@@ -136,6 +150,7 @@ export var combos = [
       ]
     },
     {
+      id: 14,
       ingredients: [[L, L, T], [L, O, T], [Z, L, T]],
       grid: [
         [0, 0, 0, 1],
@@ -145,6 +160,7 @@ export var combos = [
       ]
     },
     {
+      id: 15,
       ingredients: [[Z, Z, L], [Z, T, T]],
       grid: [
         [0, 1, 1, 1],
@@ -154,6 +170,7 @@ export var combos = [
       ]
     },
     {
+      id: 16,
       ingredients: [[O, O, O], [L, L, O]],
       grid: [
         [1, 1, 1, 1],
@@ -163,6 +180,7 @@ export var combos = [
       ]
     },
     {
+      id: 17,
       ingredients: [[Z, T, T], [Z, Z, L], [L, O, O], [L, L, L]],
       grid: [
         [0, 0, 1, 1],
@@ -172,6 +190,7 @@ export var combos = [
       ]
     },
     {
+      id: 18,
       ingredients: [[Z, L, T], [T, T, T]],
       grid: [
         [0, 1, 1, 1],

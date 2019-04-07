@@ -55,6 +55,7 @@ class App extends Component<{}, GameState> {
           <div className="row">
             <span>Station {index}</span>
             <span>Score: {solves[index]}</span>
+            <span>Puzzle: {puzzles[index] === null ? "none" : puzzles[index]!.id}</span>
             <span><button type="button" disabled={puzzles[index] === null} onClick={solvePuzzle(index)}>Solve puzzle</button></span>
           </div>
         ))}
