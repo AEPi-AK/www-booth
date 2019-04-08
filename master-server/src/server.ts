@@ -3,6 +3,7 @@ import Http = require('http');
 import IO = require('socket.io');
 import { GameState, GamePhase } from '../../shared/GameTypes';
 import { colors, combos, normalize } from '../../shared/Data';
+var shuffle = require('shuffle-array');
 
 var app = Express();
 var http = new Http.Server(app);
@@ -42,7 +43,8 @@ function generatePuzzle(solves: number) {
 
   // ingredient colors (indexes)
   // ensures no two pieces of the same puzzle are the same color
-  let ingredientColors = colors.slice().sort(() => Math.random() < 0.5 ? -1 : 1);
+  let ingredientColors = colors.slice();
+  shuffle(ingredientColors);
 
   let tiles = [];
   for (let i = 0; i < ingredients.length; i++) {
