@@ -1,0 +1,33 @@
+{
+  "name": "main-screen",
+  "version": "0.1.0",
+  "private": true,
+  "devDependencies": {
+    "react-scripts": "2.1.8"
+  },
+  "dependencies": {
+    "@types/react": "^16.8.12",
+    "@types/react-dom": "^16.8.3",
+    "@types/socket.io-client": "^1.4.32",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "socket.io": "^2.2.0",
+    "typescript": "^3.4.2"
+  },
+  "scripts": {
+    "start": "mkdir -p src/shared && cp ../shared/*.ts src/shared && PORT=3003 REACT_APP_MASTER=\"http://localhost:3000\" react-scripts start",
+    "deploy": "mkdir -p src/shared && cp ../shared/*.ts src/shared && PORT=3003 REACT_APP_MASTER=\"http://master-server.local:3000\" react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}

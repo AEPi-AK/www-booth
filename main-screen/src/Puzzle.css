@@ -1,0 +1,52 @@
+.square {
+  position: absolute;
+  background-color: black;
+  outline: 1px solid black;
+}
+
+.square-none {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.square-clear {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s 0.5s, opacity 0.5s linear;
+}
+
+@keyframes clarity {
+  0% { opacity: 100%; }
+  100% {opacity: 0%; }
+}
+
+.puzzle {
+  position: relative;
+  /* border: 2px solid red; */
+  padding: 10px;
+  width: 120px;
+  height: 190px;
+}
+
+.puzzle-grid {
+  position: relative;
+  outline: 1px solid black;
+  width: 120px;
+  height: 120px;
+}
+
+.tiles {
+  position: absolute;
+  margin-top: 10px;
+  width: 120px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.tile {
+  position: relative;
+  margin: 10px;
+  width: 30px;
+  height: 45px;
+}

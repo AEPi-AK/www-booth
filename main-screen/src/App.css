@@ -1,0 +1,52 @@
+.App {
+  display: flex;
+  flex-direction: column;
+  width: 600px;
+  margin-left: 20px;
+  margin-top: 20px;
+}
+
+.boxrow {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.scorebox {
+  display: flex;
+}
+
+.timebox {
+  display: flex;
+}
+
+.puzzlerow {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.puzzleSlot {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.puzzleName {
+  text-align: center;
+  font-size: 16pt;
+  font-weight: bold;
+}
+
+.puzzleScore {
+  text-align: center;
+}
+
+.puzzleFiller {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 140px;
+  height: 210px;
+}
