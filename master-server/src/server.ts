@@ -41,19 +41,8 @@ function generatePuzzle(solves: number) {
   let ingredients = recipe.ingredients[random(recipe.ingredients.length)];
 
   // ingredient colors (indexes)
-  let ingredientColors = [];
-  for (let i = 0; i < ingredients.length; i++) {
-    let color = random(colors.length);
-    // make sure no same pieces have same colors
-    for (let j = 0; j < i; j++) {
-      if (ingredients[j] == ingredients[i] && color == ingredientColors[j]) {
-        color = (color + 1) % colors.length;
-        j = -1; // reset to search through again in case of >2 of same tile type
-      }
-    }
-
-    ingredientColors[i] = color;
-  }
+  // ensures no two pieces of the same puzzle are the same color
+  let ingredientColors = colors.slice().sort(() => Math.random() < 0.5 ? -1 : 1);
 
   let tiles = [];
   for (let i = 0; i < ingredients.length; i++) {
