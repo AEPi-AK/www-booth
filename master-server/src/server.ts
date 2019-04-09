@@ -18,20 +18,28 @@ http.listen(3000, function () {
   console.log('listening on *:3000');
 });
 
-if (!fs.existsSync("high-score.txt")) {
-  fs.writeFileSync("high-score.txt", "0");
-}
-
 var game_state: GameState = {
   phase: GamePhase.Idle,
   time: 120,
   puzzles: [null, null, null],
   solves: [0, 0, 0],
   highScoreState: {
-    highScore: parseInt(fs.readFileSync("high-score.txt").toString()),
+    highScore: 0,
     newHighScore: false,
   }
 };
+
+fs.readFile("high-score.txt", (err, data) => {
+  if (err) {
+    if (err.code === "ENOENT") {
+      fs.writeFileSync("high-score.txt", "0");
+    } else {
+      throw err;
+    }
+  } else {
+    game_state.highScoreState.highScore = parseInt(data.toString());
+  }
+})
 
 function updatedGameState() {
   io.sockets.emit('game-state-updated', game_state);
