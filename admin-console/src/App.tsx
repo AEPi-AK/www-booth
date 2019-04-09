@@ -17,19 +17,33 @@ function subscribeToSocket(gameStateCallback: (gs: GameState) => void) {
   });
 }
 
-class App extends Component<{}, GameState> {
+function phaseToText(phase: GamePhase) {
+  return {
+    [GamePhase.Idle]: "Idle",
+    [GamePhase.PreGame]: "Pre-game",
+    [GamePhase.Playing]: "Playing",
+    [GamePhase.PostGame]: "Post-game",
+    [GamePhase.NotConnected]: "Not connected"
+  }[phase];
+}
+
+class App extends Component<{}, { gs: GameState | null }> {
   constructor(props: {}) {
     super(props);
-    this.state = { phase: GamePhase.Idle, time: 120, puzzles: [null, null, null], solves: [0, 0, 0] };
+    this.state = { gs: null };
     subscribeToSocket(this.gameStateUpdated.bind(this));
   }
 
   gameStateUpdated(gs: GameState) {
-    this.setState(gs);
+    this.setState({ gs });
   }
 
   render() {
-    let { phase, time, puzzles, solves } = this.state;
+    if (this.state.gs === null) {
+      return <div>Not connected</div>
+    }
+
+    let { phase, time, puzzles, solves } = this.state.gs;
 
     let startGame = () => {
       socket.emit('start-game');
@@ -50,6 +64,7 @@ class App extends Component<{}, GameState> {
         </div>
         <div className="row">
           <span>Time: {time}</span>
+          <span>Game Phase: {phaseToText(phase)}</span>
         </div>
         {[0, 1, 2].map(index => (
           <div className="row">

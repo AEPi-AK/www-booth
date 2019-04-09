@@ -50,3 +50,17 @@
   width: 140px;
   height: 210px;
 }
+
+.bigbox {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 24pt;
+}
+
+.row {
+  margin-top: 20px;
+}

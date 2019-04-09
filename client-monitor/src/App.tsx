@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Square from './Square';
 import TileSprite from './Tile';
 import './App.css';
-import { GameState, Tile, Color, TileType, GamePhase } from './shared/GameTypes';
+import { GameState, Tile, Color, TileType, GamePhase, Puzzle } from './shared/GameTypes';
 
 import Canvas from './images/canvas.png';
 import UCStones from './images/ucstones.png';
@@ -34,7 +34,7 @@ function subscribeToSocket(gameStateCallback: GameStateCallback) {
 }
 
 type State = {
-  playing: boolean,
+  phase: GamePhase
   squareMap: boolean[][] | null,
   tiles: Tile[] | null,
   solves: number,
@@ -42,11 +42,13 @@ type State = {
   websiteID: number,
 };
 
+let stationNumber: (keyof GameState["solves"]) = 0;
+
 class App extends Component<{}, State> {
   constructor(props: {}) {
     super(props);
     this.state = {
-      playing: false,
+      phase: GamePhase.NotConnected,
       squareMap: null,
       tiles: [{ color: Color.Red, type: TileType.T }, { color: Color.Green, type: TileType.Z }],
       solves: 0,
@@ -58,29 +60,50 @@ class App extends Component<{}, State> {
 
   updateGameState(gameState: GameState) {
     let newState: State = {
-      playing: gameState.phase === GamePhase.Playing,
+      phase: gameState.phase,
       squareMap: null,
       tiles: null,
-      solves: gameState.solves[0],
+      //@ts-ignore
+      solves: gameState.solves[stationNumber],
       time: gameState.time,
       websiteID: this.state.websiteID
     };
-    if (gameState.puzzles[0]) {
-      newState.squareMap = gameState.puzzles[0].grid.map(row => row.map(x => x === 1));
-      newState.tiles = gameState.puzzles[0].ingredients;
-      newState.websiteID = gameState.puzzles[0].id % images.length;
+    //@ts-ignore
+    let puz: Puzzle | null = gameState.puzzles[stationNumber];
+    if (puz) {
+      newState.squareMap = puz.grid.map(row => row.map(x => x === 1));
+      newState.tiles = puz.ingredients;
+      newState.websiteID = puz.id % images.length;
     }
     this.setState(newState);
   }
 
   render() {
-    return this.state.playing ? this.renderPlaying() : this.renderIdle();
+    switch (this.state.phase) {
+      case GamePhase.PreGame:
+        return this.renderPregame();
+      case GamePhase.Playing:
+        return this.renderPlaying();
+      case GamePhase.PostGame:
+        return this.renderPostgame();
+      case GamePhase.Idle:
+      default:
+        return this.renderIdle();
+    }
   }
 
   renderIdle() {
     return <div className="idlebox">
       Please wait for game to start
     </div>
+  }
+
+  renderPregame() {
+    return <div className="pregamebox">Starting in {this.state.time}</div>
+  }
+
+  renderPostgame() {
+    return <div className="postgamebox">Station score: {this.state.solves}</div>;
   }
 
   renderPlaying() {

@@ -1,6 +1,7 @@
 import Express = require('express');
 import Http = require('http');
 import IO = require('socket.io');
+import fs = require('fs');
 import { GameState, GamePhase, Color, Puzzle, TileType } from '../../shared/GameTypes';
 import { colors, combos, normalize, tilePositions } from '../../shared/Data';
 var shuffle = require('shuffle-array');
@@ -17,22 +18,32 @@ http.listen(3000, function () {
   console.log('listening on *:3000');
 });
 
-function startingGameState(): GameState {
-  return {
-    phase: GamePhase.Idle,
-    time: 120,
-    puzzles: [null, null, null],
-    solves: [0, 0, 0]
-  };
+if (!fs.existsSync("high-score.txt")) {
+  fs.writeFileSync("high-score.txt", "0");
 }
 
-var game_state: GameState = startingGameState();
-function resetGameState() {
-  game_state = startingGameState();
-}
+var game_state: GameState = {
+  phase: GamePhase.Idle,
+  time: 120,
+  puzzles: [null, null, null],
+  solves: [0, 0, 0],
+  highScoreState: {
+    highScore: parseInt(fs.readFileSync("high-score.txt").toString()),
+    newHighScore: false,
+  }
+};
 
 function updatedGameState() {
   io.sockets.emit('game-state-updated', game_state);
+}
+
+function checkNewHighScore(score: number) {
+  if (game_state.highScoreState.highScore >= score) {
+    return;
+  }
+  game_state.highScoreState.newHighScore = true;
+  game_state.highScoreState.highScore = score;
+  fs.writeFile("high-score.txt", score.toString(), err => { });
 }
 
 function random(max: number) {
@@ -64,6 +75,7 @@ function generatePuzzle(solves: number) {
   }
 }
 
+// compare in lexicographic order
 function compare2d(a: Position, b: Position) {
   if (a[0] > b[0]) {
     return 1;
@@ -78,6 +90,7 @@ function compare2d(a: Position, b: Position) {
   }
 }
 
+// matches prototype to actual, not trying different rotations but offsetting
 function matchInRotation(prototype: Position[], actual: Position[]) {
   if (prototype.length !== actual.length) {
     return false;
@@ -87,51 +100,53 @@ function matchInRotation(prototype: Position[], actual: Position[]) {
   prototype.sort(compare2d);
   actual.sort(compare2d);
 
+  // get fixed reference points
   let minXProto = prototype[0][0];
   let minYProto = prototype[0][1];
   let minXActual = actual[0][0];
   let minYActual = actual[0][1];
 
   for (let i = 0; i < prototype.length; i++) {
-    if (prototype[i][0] - minXProto !== actual[i][0] - minXActual) {
+    if (prototype[i][0] - minXProto !== actual[i][0] - minXActual || prototype[i][1] - minYProto !== actual[i][1] - minYActual) {
       return false;
     }
-    if (prototype[i][1] - minYProto !== actual[i][1] - minYActual) {
-      return false;
-    }
-    console.log("matched (" + prototype[i][0] + ", " + prototype[i][1] + ") with (" + actual[i][0] + ", " + actual[i][1] + ")")
   }
   return true;
 }
 
-
+// possible orientations of tiles
 //@ts-ignore
 let orientations: ((ls: Position[]) => Position[])[] = [
-  ls => ls,
-  ls => ls.map(a => [-a[1], a[0]]),
-  ls => ls.map(a => [-a[0], -a[1]]),
-  ls => ls.map(a => [a[1], -a[0]]),
-  ls => ls.map(a => [-a[0], a[1]]),
-  ls => ls.map(a => [-a[1], -a[0]]),
-  ls => ls.map(a => [a[0], -a[1]]),
-  ls => ls.map(a => [a[1], a[0]]),
+  ls => ls, // id
+  ls => ls.map(a => [-a[1], a[0]]), // 90 deg rotation
+  ls => ls.map(a => [-a[0], -a[1]]), // 180 deg rotation
+  ls => ls.map(a => [a[1], -a[0]]), // 270 deg rotation
+  ls => ls.map(a => [-a[0], a[1]]), // flip over y-axis
+  ls => ls.map(a => [-a[1], -a[0]]), // flip over y=-x
+  ls => ls.map(a => [a[0], -a[1]]), // flip over x-axis
+  ls => ls.map(a => [a[1], a[0]]), // flip over y=x
 ]
 
+// matches prototype to actual up to rotation
 function match(prototype: Position[], actual: Position[]) {
   for (let i = 0; i < orientations.length; i++) {
-    console.log("trying orientation " + i);
-    if (matchInRotation(orientations[i](prototype), orientations[i](actual))) {
-      console.log("matched in orientation " + i)
+    if (matchInRotation(prototype, orientations[i](actual))) {
       return true;
     }
   }
   return false;
 }
 
+// returns true iff grid solves puz
 function puzzleSolutionCheck(puz: Puzzle, grid: (Color | null)[][]) {
-  //@ts-ignore
-  if (puz.ingredients.length * 4 != Array.prototype.concat.apply([], grid).filter(c => c !== null).length) {
-    return false;
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      if (puz.grid[i][j] === 1 && grid[i][j] === null) {
+        return false;
+      } else if (puz.grid[i][j] === 0 && grid[i][j] !== null) {
+        return false;
+      }
+    }
   }
 
   for (let tile of puz.ingredients) {
@@ -139,7 +154,7 @@ function puzzleSolutionCheck(puz: Puzzle, grid: (Color | null)[][]) {
     for (let i = 0; i < 4; i++) {
       for (let j = 0; j < 4; j++) {
         if (grid[i][j] === tile.color) {
-          positions.push([i, j]);
+          positions.push([j, i]);
         }
       }
     }
@@ -150,114 +165,149 @@ function puzzleSolutionCheck(puz: Puzzle, grid: (Color | null)[][]) {
   return true;
 }
 
-let psc_tests: { puz: Puzzle, grid: (Color | null)[][], result: boolean }[] = [
-  {
-    puz: {
-      id: 1,
-      ingredients: [{ color: Color.Red, type: TileType.L }],
-      grid: [
-        [1, 1],
-        [1, 0],
-        [1, 0]
-      ]
-    },
-    grid: [
-      [null, Color.Red, Color.Red, null],
-      [null, null, Color.Red, null],
-      [null, Color.Red, null, null],
-      [null, null, null, null]
-    ],
-    result: true
-  },
-  {
-    puz: {
-      id: 1,
-      ingredients: [{ color: Color.Red, type: TileType.L }],
-      grid: [
-        [1, 1],
-        [1, 0],
-        [1, 0]
-      ]
-    },
-    grid: [
-      [null, null, Color.Red, null],
-      [null, Color.Red, Color.Red, null],
-      [null, null, Color.Red, null],
-      [null, null, null, null]
-    ],
-    result: false
-  },
-  {
-    puz: {
-      id: 1,
-      ingredients: [{ color: Color.Red, type: TileType.L }],
-      grid: [
-        [1, 1],
-        [1, 0],
-        [1, 0]
-      ]
-    },
-    grid: [
-      [null, null, Color.Red, null],
-      [null, null, Color.Red, null],
-      [null, null, Color.Red, null],
-      [null, null, null, null]
-    ],
-    result: false
-  },
-  {
-    puz: {
-      id: 14,
-      ingredients: [{ color: Color.Red, type: TileType.L }, { color: Color.Green, type: TileType.O }, { color: Color.Blue, type: TileType.T }],
-      grid: [
-        [0, 0, 0, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 0]
-      ]
-    },
-    grid: [
-      [null, null, null, Color.Blue],
-      [Color.Green, Color.Green, Color.Blue, Color.Blue],
-      [Color.Green, Color.Red, Color.Red, Color.Blue],
-      [Color.Green, Color.Red, Color.Red, null]
-    ],
-    result: true,
-  },
-  {
-    puz: {
-      id: 14,
-      ingredients: [{ color: Color.Red, type: TileType.L }, { color: Color.Green, type: TileType.O }, { color: Color.Blue, type: TileType.T }],
-      grid: [
-        [0, 0, 0, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 0]
-      ]
-    },
-    grid: [
-      [null, null, null, Color.Red],
-      [Color.Green, Color.Blue, Color.Blue, Color.Blue],
-      [Color.Green, Color.Red, Color.Green, Color.Blue],
-      [Color.Green, Color.Red, Color.Red, null]
-    ],
-    result: false,
-  },
-]
 
-for (let i = 0; i < psc_tests.length; i++) {
-  let { puz, grid, result } = psc_tests[i];
-  if (puzzleSolutionCheck(puz, grid) !== result) {
-    throw "failed " + i;
-  } else {
-    console.log("passed " + i);
+
+function test_psc() {
+  let psc_tests: { puz: Puzzle, grid: (Color | null)[][], result: boolean }[] = [
+    { // 0
+      puz: {
+        id: 1,
+        ingredients: [{ color: Color.Red, type: TileType.L }],
+        grid: [
+          [0, 0, 0, 0],
+          [1, 1, 0, 0],
+          [1, 0, 0, 0],
+          [1, 0, 0, 0]
+        ]
+      },
+      grid: [
+        [null, null, null, null],
+        [Color.Red, Color.Red, null, null],
+        [Color.Red, null, null, null],
+        [Color.Red, null, null, null]
+      ],
+      result: true
+    },
+    { // 1
+      puz: {
+        id: 1,
+        ingredients: [{ color: Color.Red, type: TileType.L }],
+        grid: [
+          [0, 0, 0, 0],
+          [1, 1, 0, 0],
+          [1, 0, 0, 0],
+          [1, 0, 0, 0]
+        ]
+      },
+      grid: [
+        [null, null, Color.Red, null],
+        [null, Color.Red, Color.Red, null],
+        [null, null, Color.Red, null],
+        [null, null, null, null]
+      ],
+      result: false
+    },
+    { // 2
+      puz: {
+        id: 1,
+        ingredients: [{ color: Color.Red, type: TileType.L }],
+        grid: [
+          [0, 0, 0, 0],
+          [1, 1, 0, 0],
+          [1, 0, 0, 0],
+          [1, 0, 0, 0]
+        ]
+      },
+      grid: [
+        [null, null, null, null],
+        [Color.Red, Color.Red, null, null],
+        [Color.Red, null, null, null],
+        [Color.Green, null, null, null]
+      ],
+      result: false
+    },
+    {
+      puz: {
+        id: 0,
+        ingredients: [{ color: Color.Red, type: TileType.L }, { color: Color.Green, type: TileType.O }],
+        grid: [
+          [0, 0, 0, 0],
+          [0, 1, 1, 1],
+          [0, 1, 1, 1],
+          [0, 0, 1, 1]
+        ]
+      },
+      grid: [
+        [null, null, null, null],
+        [null, Color.Green, Color.Green, Color.Red],
+        [null, Color.Green, Color.Green, Color.Red],
+        [null, null, Color.Red, Color.Red]
+      ],
+      result: true
+    },
+    { // 4
+      puz: {
+        id: 14,
+        ingredients: [{ color: Color.Red, type: TileType.O }, { color: Color.Green, type: TileType.L }, { color: Color.Blue, type: TileType.T }],
+        grid: [
+          [0, 0, 0, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 0]
+        ]
+      },
+      grid: [
+        [null, null, null, Color.Blue],
+        [Color.Green, Color.Green, Color.Blue, Color.Blue],
+        [Color.Green, Color.Red, Color.Red, Color.Blue],
+        [Color.Green, Color.Red, Color.Red, null]
+      ],
+      result: true,
+    },
+    {
+      puz: {
+        id: 14,
+        ingredients: [{ color: Color.Red, type: TileType.L }, { color: Color.Green, type: TileType.O }, { color: Color.Blue, type: TileType.T }],
+        grid: [
+          [0, 0, 0, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 1],
+          [1, 1, 1, 0]
+        ]
+      },
+      grid: [
+        [null, null, null, Color.Red],
+        [Color.Green, Color.Blue, Color.Blue, Color.Blue],
+        [Color.Green, Color.Red, Color.Green, Color.Blue],
+        [Color.Green, Color.Red, Color.Red, null]
+      ],
+      result: false,
+    },
+  ]
+  for (let i = 0; i < psc_tests.length; i++) {
+    let { puz, grid, result } = psc_tests[i];
+    if (puzzleSolutionCheck(puz, grid) !== result) {
+      throw "failed " + i;
+    } else {
+      console.log("passed " + i + "\n");
+    }
   }
 }
+// test_psc();
 
 
 function startIdle() {
   clearTimers();
-  game_state.phase = GamePhase.Idle;
+  game_state = {
+    phase: GamePhase.Idle,
+    time: 0,
+    puzzles: [null, null, null],
+    solves: game_state.solves,
+    highScoreState: {
+      highScore: game_state.highScoreState.highScore,
+      newHighScore: game_state.highScoreState.newHighScore
+    }
+  }
   updatedGameState();
 }
 
@@ -273,11 +323,15 @@ function startPreGame() {
   clearTimers();
 
   game_state = {
-    phase: GamePhase.PreGame,
+    phase: GamePhase.Idle,
     time: 5,
     puzzles: [null, null, null],
-    solves: [0, 0, 0]
-  };
+    solves: [0, 0, 0],
+    highScoreState: {
+      highScore: game_state.highScoreState.highScore,
+      newHighScore: false
+    }
+  }
 
   function tick() {
     game_state.time -= 1;
@@ -300,15 +354,21 @@ function startGame() {
     if (game_state.time === 0) {
       startPostgame();
     }
+    checkNewHighScore(game_state.solves[0] + game_state.solves[1] + game_state.solves[2]);
     updatedGameState();
   }
 
   game_state = {
     phase: GamePhase.Playing,
-    time: 120,
+    time: 5,
     puzzles: [generatePuzzle(0), generatePuzzle(0), generatePuzzle(0)],
-    solves: [0, 0, 0]
+    solves: [0, 0, 0],
+    highScoreState: {
+      highScore: game_state.highScoreState.highScore,
+      newHighScore: false,
+    }
   };
+
   playingTimers.push(setInterval(tick, 1000));
 
   updatedGameState();
@@ -321,8 +381,13 @@ function startPostgame() {
     phase: GamePhase.PostGame,
     time: 0,
     puzzles: [null, null, null],
-    solves: game_state.solves
+    solves: game_state.solves,
+    highScoreState: {
+      highScore: game_state.highScoreState.highScore,
+      newHighScore: game_state.highScoreState.newHighScore
+    }
   };
+  checkNewHighScore(game_state.solves[0] + game_state.solves[1] + game_state.solves[2]);
 
   postgameTimers.push(setTimeout(startIdle, 3000));
   updatedGameState();
@@ -384,13 +449,10 @@ io.on('connect', function (socket: SocketIO.Socket) {
     let puz = game_state.puzzles[station];
 
     if (puz !== null && puzzleSolutionCheck(puz, grid)) {
-      socket.emit('solve-puzzle', station);
+      socket.emit('solved-puzzle', station);
     } else {
       socket.emit('wrong-submission', station);
     }
-
-
-
   });
 
   socket.on('solved-puzzle', function (data: number) {
@@ -398,7 +460,7 @@ io.on('connect', function (socket: SocketIO.Socket) {
       return;
     }
 
-    let solved = game_state.solves[data]++;
+    game_state.solves[data]++;
 
     game_state.puzzles[data] = null;
     playingTimers.push(

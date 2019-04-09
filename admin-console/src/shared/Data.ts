@@ -202,6 +202,18 @@ export var combos = [
   ]
 ]
 
+export function tilePositions(type: TileType): [number, number][] {
+  //@ts-ignore
+  let positions: { [TileType]: [number, number][] } = {
+    [TileType.L]: [[0, 0], [0, 1], [0, 2], [1, 2]],
+    [TileType.O]: [[0, 1], [1, 1], [0, 2], [1, 2]],
+    [TileType.T]: [[0, 0], [0, 1], [0, 2], [1, 1]],
+    [TileType.Z]: [[0, 0], [0, 1], [1, 1], [1, 2]]
+  }
+  //@ts-ignore
+  return positions[type];
+}
+
 // fits the shape into a rows x cols grid
 // @requires grid's dimensions fit within rows x cols
 export function normalize(grid: number[][], rows: number, cols: number) {

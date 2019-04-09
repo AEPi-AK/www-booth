@@ -22,6 +22,7 @@
   flex-direction: column;
   justify-content: center;
   outline: 2px black solid;
+  background-color: white;
 }
 
 .website-image {
@@ -69,4 +70,30 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.pregamebox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 24pt;
+}
+
+.postgamebox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 24pt;
 }

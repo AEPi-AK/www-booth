@@ -20,13 +20,19 @@ export interface GameState {
     phase: GamePhase,
     time: number,
     puzzles: [maybePuzzle, maybePuzzle, maybePuzzle],
-    solves: [number, number, number]
+    solves: [number, number, number],
+    highScoreState: {
+        highScore: number,
+        newHighScore: boolean,
+    }
 }
 
 export enum GamePhase {
     NotConnected, // This should only be set in the game-screen module.
     Idle,
-    Playing
+    PreGame,
+    Playing,
+    PostGame
 }
 
 export interface Puzzle {

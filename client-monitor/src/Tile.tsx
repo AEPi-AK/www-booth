@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Tile, Color, TileType } from './shared/GameTypes'
+import { tilePositions } from './shared/Data';
 import './Tile.css';
 
 let SQUARE_SIZE = 50;
@@ -7,26 +8,13 @@ let SQUARE_SIZE = 50;
 type Props = Tile;
 
 let colorToCSS = (color: Color) => {
-  if (color === Color.Red) {
-    return "red";
-  } else if (color === Color.Green) {
-    return "green";
-  } else { // blue
-    return "blue";
-  }
+  return {
+    [Color.Red]: "red",
+    [Color.Green]: "green",
+    [Color.Blue]: "blue"
+  }[color];
 }
 
-let tilePositions = (type: TileType) => {
-  if (type === TileType.L) {
-    return [[0, 0], [0, 1], [0, 2], [1, 2]];
-  } else if (type === TileType.O) {
-    return [[0, 1], [1, 1], [0, 2], [1, 2]];
-  } else if (type === TileType.T) {
-    return [[0, 0], [0, 1], [0, 2], [1, 1]];
-  } else { // Z
-    return [[0, 0], [0, 1], [1, 1], [1, 2]];
-  }
-}
 
 class TileSquare extends Component<{ row: number, col: number, color: Color }> {
   render() {
