@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Color, TileType, Tile, Puzzle } from './shared/GameTypes';
+import images from './shared/Images';
 import './Puzzle.css';
 
 
@@ -34,11 +35,11 @@ let tilePositions = (type: TileType) => {
   }
 }
 
-function TilePiece(props: { tile: Tile }) {
+function TilePiece(props: { tile: Tile, hidden: boolean }) {
   let { color, type } = props.tile;
   return (
     <div className="tile">
-      {tilePositions(type).map(pos => <Square row={pos[1]} col={pos[0]} color={colorToCSS(color)} on size={15} />)}
+      {tilePositions(type).map(pos => <Square row={pos[1]} col={pos[0]} color={colorToCSS(color)} on={!props.hidden} size={15} />)}
     </div>
   );
 
@@ -46,16 +47,17 @@ function TilePiece(props: { tile: Tile }) {
 
 type PuzzleProps = { puzzle: Puzzle };
 function PuzzleDisplay(props: PuzzleProps) {
-  let { grid, ingredients } = props.puzzle;
+  let { grid, ingredients, id, solved } = props.puzzle;
 
   let positions = [0, 1, 2, 3].map(i => [[i, 0], [i, 1], [i, 2], [i, 3]]).flat();
 
   return (<div className="puzzle">
-    <div className="puzzle-grid">
-      {positions.map(pos => <Square row={pos[0]} col={pos[1]} color="black" on={grid[pos[0]][pos[1]] === 1} size={30} />)}
+    <div className={solved ? "puzzle-grid puzzle-grid-solved" : "puzzle-grid"}>
+      <img className="puzzlepic" src={images[id % images.length]} />
+      {positions.map(pos => <Square row={pos[0]} col={pos[1]} color="black" on={grid[pos[0]][pos[1]] === 1 && !solved} size={30} />)}
     </div>
     <div className="tiles">
-      {ingredients.map(tile => <TilePiece tile={tile} />)}
+      {solved ? '' : ingredients.map(tile => <TilePiece tile={tile} hidden={solved} />)}
     </div>
   </div>);
 }

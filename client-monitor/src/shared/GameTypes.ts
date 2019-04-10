@@ -38,7 +38,8 @@ export enum GamePhase {
 export interface Puzzle {
     id: number,
     grid: number[][],
-    ingredients: Tile[]
+    ingredients: Tile[],
+    solved: boolean,
 }
 
 export interface Tile {

@@ -79,7 +79,8 @@ function generatePuzzle(solves: number) {
   return {
     id: recipe.id,
     grid: normalize(recipe.grid, 4, 4),
-    ingredients: tiles
+    ingredients: tiles,
+    solved: false
   }
 }
 
@@ -186,7 +187,8 @@ function test_psc() {
           [1, 1, 0, 0],
           [1, 0, 0, 0],
           [1, 0, 0, 0]
-        ]
+        ],
+        solved: false
       },
       grid: [
         [null, null, null, null],
@@ -205,7 +207,8 @@ function test_psc() {
           [1, 1, 0, 0],
           [1, 0, 0, 0],
           [1, 0, 0, 0]
-        ]
+        ],
+        solved: false
       },
       grid: [
         [null, null, Color.Red, null],
@@ -224,7 +227,8 @@ function test_psc() {
           [1, 1, 0, 0],
           [1, 0, 0, 0],
           [1, 0, 0, 0]
-        ]
+        ],
+        solved: false
       },
       grid: [
         [null, null, null, null],
@@ -243,7 +247,8 @@ function test_psc() {
           [0, 1, 1, 1],
           [0, 1, 1, 1],
           [0, 0, 1, 1]
-        ]
+        ],
+        solved: false
       },
       grid: [
         [null, null, null, null],
@@ -262,7 +267,8 @@ function test_psc() {
           [1, 1, 1, 1],
           [1, 1, 1, 1],
           [1, 1, 1, 0]
-        ]
+        ],
+        solved: false
       },
       grid: [
         [null, null, null, Color.Blue],
@@ -281,7 +287,8 @@ function test_psc() {
           [1, 1, 1, 1],
           [1, 1, 1, 1],
           [1, 1, 1, 0]
-        ]
+        ],
+        solved: false
       },
       grid: [
         [null, null, null, Color.Red],
@@ -368,7 +375,7 @@ function startGame() {
 
   game_state = {
     phase: GamePhase.Playing,
-    time: 5,
+    time: 120,
     puzzles: [generatePuzzle(0), generatePuzzle(0), generatePuzzle(0)],
     solves: [0, 0, 0],
     highScoreState: {
@@ -456,7 +463,7 @@ io.on('connect', function (socket: SocketIO.Socket) {
 
     let puz = game_state.puzzles[station];
 
-    if (puz !== null && puzzleSolutionCheck(puz, grid)) {
+    if (puz !== null && !puz.solved && puzzleSolutionCheck(puz, grid)) {
       socket.emit('solved-puzzle', station);
     } else {
       socket.emit('wrong-submission', station);
@@ -470,7 +477,7 @@ io.on('connect', function (socket: SocketIO.Socket) {
 
     game_state.solves[data]++;
 
-    game_state.puzzles[data] = null;
+    game_state.puzzles[data]!.solved = true;
     playingTimers.push(
       setTimeout(addPuzzleCallback(data), 2000)
     );

@@ -30,10 +30,26 @@
 
 .puzzle-grid {
   position: relative;
-  outline: 1px solid black;
+  display: flex;
+  align-items: center;
+  outline: 2px solid grey;
   background-color: white;
   width: 120px;
   height: 120px;
+  z-index: -1;
+}
+
+.puzzle-grid-solved {
+  animation-delay: 0.75s;
+  animation-duration: 0.75s;
+  animation-name: flyout;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+}
+
+.puzzlepic {
+  width: 100%;
+  height: auto;
 }
 
 .tiles {
@@ -50,4 +66,9 @@
   margin: 10px;
   width: 30px;
   height: 45px;
+}
+
+@keyframes flyout {
+  0% {transform: translateY(0); }
+  100% {transform: translateY(-1000px); }
 }
