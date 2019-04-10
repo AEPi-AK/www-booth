@@ -9,3 +9,16 @@
   flex-direction: row;
   justify-content: space-evenly;
 }
+
+.tile-button {
+  padding: 10px;
+  
+}
+
+.tile-button-disabled {
+  background-color: red;
+}
+
+.tile-button-enabled {
+  background-color: lightgreen;
+}

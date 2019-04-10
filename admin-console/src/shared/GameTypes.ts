@@ -1,19 +1,7 @@
 type maybePuzzle = Puzzle | null;
 
 export interface HardwareState {
-    stationA: {
-        plate: boolean,
-        monitor: boolean
-    },
-    stationB: {
-        plate: boolean,
-        monitor: boolean
-    },
-    stationC: {
-        plate: boolean,
-        monitor: boolean
-    },
-    adminConsole: boolean,
+    disabledTiles: Tile[]
 }
 
 export interface GameState {
@@ -38,7 +26,8 @@ export enum GamePhase {
 export interface Puzzle {
     id: number,
     grid: number[][],
-    ingredients: Tile[]
+    ingredients: Tile[],
+    solved: boolean,
 }
 
 export interface Tile {

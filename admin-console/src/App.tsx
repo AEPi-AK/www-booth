@@ -4,17 +4,18 @@ import logo from './logo.svg';
 import './App.css';
 import Socket from 'socket.io-client';
 
-import { GameState, Tile, Color, TileType, GamePhase } from './shared/GameTypes';
+import { GameState, Tile, Color, TileType, GamePhase, HardwareState } from './shared/GameTypes';
 
 var socket: SocketIOClient.Socket = Socket('http://localhost:3000/');
 
-function subscribeToSocket(gameStateCallback: (gs: GameState) => void) {
+function subscribeToSocket(gameStateCallback: (gs: GameState) => void, hardwareStateCallback: (hs: HardwareState) => void) {
   socket.on('connect', () => {
     socket.emit('identification', 'console');
   });
   socket.on('game-state-updated', (gs: GameState) => {
     gameStateCallback(gs);
   });
+  socket.on('hardware-state-updated', hardwareStateCallback);
 }
 
 function phaseToText(phase: GamePhase) {
@@ -27,15 +28,36 @@ function phaseToText(phase: GamePhase) {
   }[phase];
 }
 
-class App extends Component<{}, { gs: GameState | null }> {
+function colorToText(color: Color) {
+  return {
+    [Color.Red]: "Red",
+    [Color.Green]: "Green",
+    [Color.Blue]: "Blue"
+  }[color];
+}
+
+function typeToText(type: TileType) {
+  return {
+    [TileType.L]: "L",
+    [TileType.O]: "O",
+    [TileType.T]: "T",
+    [TileType.Z]: "Z"
+  }[type];
+}
+
+class App extends Component<{}, { gs: GameState | null, hs: HardwareState | null }> {
   constructor(props: {}) {
     super(props);
-    this.state = { gs: null };
-    subscribeToSocket(this.gameStateUpdated.bind(this));
+    this.state = { gs: null, hs: null };
+    subscribeToSocket(this.gameStateUpdated.bind(this), this.hardwareStateUpdated.bind(this));
   }
 
   gameStateUpdated(gs: GameState) {
     this.setState({ gs });
+  }
+
+  hardwareStateUpdated(hs: HardwareState) {
+    this.setState({ hs });
   }
 
   render() {
@@ -56,6 +78,38 @@ class App extends Component<{}, { gs: GameState | null }> {
     let resetGame = () => {
       socket.emit('reset-game');
     }
+
+    let getTileButton = (tile: Tile) => {
+      if (this.state.hs === null) {
+        return '';
+      }
+
+      let disabled = false;
+
+      let enableTile = () => {
+        socket.emit('enable-tile', tile);
+      }
+
+      let disableTile = () => {
+        socket.emit('disable-tile', tile);
+      }
+
+      for (let t of this.state.hs.disabledTiles) {
+        if (t.type === tile.type && t.color === tile.color) {
+          disabled = true;
+        }
+      }
+      if (disabled) {
+        return <div className="tile-button tile-button-disabled" onClick={enableTile}>
+          {colorToText(tile.color)} {typeToText(tile.type)}
+        </div>
+      } else {
+        return <div className="tile-button tile-button-enabled" onClick={disableTile}>
+          {colorToText(tile.color)} {typeToText(tile.type)}
+        </div>
+      }
+    }
+
     return (
       <div className="layout">
         <div className="row">
@@ -74,6 +128,15 @@ class App extends Component<{}, { gs: GameState | null }> {
             <span><button type="button" disabled={puzzles[index] === null} onClick={solvePuzzle(index)}>Solve puzzle</button></span>
           </div>
         ))}
+        <div className="row">
+          <table>
+            {[Color.Red, Color.Green, Color.Blue].map(color => (
+              <tr>{[TileType.L, TileType.O, TileType.T, TileType.Z].map(type => (
+                <td> {getTileButton({ color, type })}</td>
+              ))}</tr>
+            ))}
+          </table>
+        </div>
       </div>
     );
   }

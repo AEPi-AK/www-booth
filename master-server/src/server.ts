@@ -2,7 +2,7 @@ import Express = require('express');
 import Http = require('http');
 import IO = require('socket.io');
 import fs = require('fs');
-import { GameState, GamePhase, Color, Puzzle, TileType } from '../../shared/GameTypes';
+import { GameState, GamePhase, Color, Puzzle, TileType, HardwareState, Tile } from '../../shared/GameTypes';
 import { colors, combos, normalize, tilePositions } from '../../shared/Data';
 var shuffle = require('shuffle-array');
 
@@ -29,6 +29,10 @@ var game_state: GameState = {
   }
 };
 
+var hardware_state: HardwareState = {
+  disabledTiles: []
+}
+
 fs.readFile("high-score.txt", (err, data) => {
   if (err) {
     if (err.code === "ENOENT") {
@@ -40,6 +44,19 @@ fs.readFile("high-score.txt", (err, data) => {
     game_state.highScoreState.highScore = parseInt(data.toString());
   }
 })
+
+function updatedHardwareState() {
+  io.sockets.emit('hardware-state-updated', hardware_state);
+}
+
+function tileDisabled(tile: Tile) {
+  for (let t of hardware_state.disabledTiles) {
+    if (t.color === tile.color && t.type === tile.type) {
+      return true;
+    }
+  }
+  return false;
+}
 
 function updatedGameState() {
   io.sockets.emit('game-state-updated', game_state);
@@ -59,27 +76,44 @@ function random(max: number) {
 }
 
 function generatePuzzle(solves: number) {
-  let difficulty = Math.min(solves, 4);
-  let recipe = combos[difficulty][random(combos[difficulty].length)];
-  let ingredients = recipe.ingredients[random(recipe.ingredients.length)];
+  for (let i = 0; i < 1000; i++) {
+    let difficulty = Math.min(solves, 4);
+    let recipe = combos[difficulty][random(combos[difficulty].length)];
+    let ingredients = recipe.ingredients[random(recipe.ingredients.length)];
 
-  // ingredient colors (indexes)
-  // ensures no two pieces of the same puzzle are the same color
-  let ingredientColors = colors.slice();
-  shuffle(ingredientColors);
+    // ingredient colors (indexes)
+    // ensures no two pieces of the same puzzle are the same color
+    let ingredientColors = colors.slice();
+    shuffle(ingredientColors);
 
-  let tiles = [];
-  for (let i = 0; i < ingredients.length; i++) {
-    tiles[i] = {
-      type: ingredients[i],
-      color: ingredientColors[i]
-    };
+    let tiles = [];
+    for (let i = 0; i < ingredients.length; i++) {
+      tiles[i] = {
+        type: ingredients[i],
+        color: ingredientColors[i]
+      };
+    }
+
+    let ok = true;
+    for (let tile of tiles) {
+      if (tileDisabled(tile)) {
+        ok = false;
+      }
+    }
+
+    if (ok) {
+      return {
+        id: recipe.id,
+        grid: normalize(recipe.grid, 4, 4),
+        ingredients: tiles,
+        solved: false
+      }
+    }
   }
-
   return {
-    id: recipe.id,
-    grid: normalize(recipe.grid, 4, 4),
-    ingredients: tiles,
+    id: 0,
+    grid: [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+    ingredients: [],
     solved: false
   }
 }
@@ -173,8 +207,6 @@ function puzzleSolutionCheck(puz: Puzzle, grid: (Color | null)[][]) {
   }
   return true;
 }
-
-
 
 function test_psc() {
   let psc_tests: { puz: Puzzle, grid: (Color | null)[][], result: boolean }[] = [
@@ -426,6 +458,7 @@ io.on('connect', function (socket: SocketIO.Socket) {
   console.log('a user connected: ' + socket.id);
 
   updatedGameState();
+  updatedHardwareState();
 
   socket.on('disconnect', function () {
     if (name) {
@@ -484,4 +517,21 @@ io.on('connect', function (socket: SocketIO.Socket) {
 
     updatedGameState();
   });
+
+  socket.on('enable-tile', function (data: { color: Color, type: TileType }) {
+    let { color, type } = data;
+    hardware_state.disabledTiles = hardware_state.disabledTiles.filter(
+      tile => tile.color !== color || tile.type !== type
+    );
+    updatedHardwareState();
+  });
+
+  socket.on('disable-tile', function (data: { color: Color, type: TileType }) {
+    let { color, type } = data;
+    hardware_state.disabledTiles = hardware_state.disabledTiles.filter(
+      tile => tile.color !== color || tile.type !== type
+    );
+    hardware_state.disabledTiles.push({ color, type });
+    updatedHardwareState();
+  })
 });
