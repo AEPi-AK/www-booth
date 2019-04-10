@@ -452,6 +452,21 @@ function clearTimers() {
   }
 }
 
+function solvedPuzzle(station: number) {
+  io.sockets.emit('solved-puzzle-sound', station);
+  if (game_state.phase != GamePhase.Playing) {
+    return;
+  }
+
+  game_state.solves[station]++;
+
+  game_state.puzzles[station]!.solved = true;
+  playingTimers.push(
+    setTimeout(addPuzzleCallback(station), 2000)
+  );
+
+  updatedGameState();
+}
 
 io.on('connect', function (socket: SocketIO.Socket) {
   let name: null | string = null;
@@ -497,25 +512,14 @@ io.on('connect', function (socket: SocketIO.Socket) {
     let puz = game_state.puzzles[station];
 
     if (puz !== null && !puz.solved && puzzleSolutionCheck(puz, grid)) {
-      socket.emit('solved-puzzle', station);
+      solvedPuzzle(station);
     } else {
-      socket.emit('wrong-submission', station);
+      io.sockets.emit('wrong-submission', station);
     }
   });
 
   socket.on('solved-puzzle', function (data: number) {
-    if (game_state.phase != GamePhase.Playing) {
-      return;
-    }
-
-    game_state.solves[data]++;
-
-    game_state.puzzles[data]!.solved = true;
-    playingTimers.push(
-      setTimeout(addPuzzleCallback(data), 2000)
-    );
-
-    updatedGameState();
+    solvedPuzzle(data);
   });
 
   socket.on('enable-tile', function (data: { color: Color, type: TileType }) {

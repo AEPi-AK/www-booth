@@ -4,6 +4,7 @@ import TileSprite from './Tile';
 import './App.css';
 import { GameState, Tile, Color, TileType, GamePhase, Puzzle } from './shared/GameTypes';
 import images from './shared/Images';
+import Sound from 'react-sound';
 
 import Socket from 'socket.io-client';
 
@@ -11,13 +12,24 @@ var socket: SocketIOClient.Socket = Socket('http://localhost:3000/');
 
 type GameStateCallback = ((gs: GameState) => void);
 
-function subscribeToSocket(gameStateCallback: GameStateCallback) {
+function subscribeToSocket(gameStateCallback: GameStateCallback, solvedCallback: (d: number) => void, errorCallback: (d: number) => void) {
   socket.on('connect', () => {
     socket.emit('identification', 'console');
   });
+
   socket.on('game-state-updated', (gs: GameState) => {
+    console.log("updated");
     gameStateCallback(gs);
   });
+
+  socket.on('solved-puzzle-sound', (data: number) => {
+    console.log("solved!");
+    solvedCallback(data);
+  });
+
+  socket.on('test', () => console.log('test!'));
+
+  socket.on('wrong-submission', errorCallback);
 }
 
 type State = {
@@ -28,6 +40,8 @@ type State = {
   solves: number,
   time: number,
   websiteID: number,
+  solvedSound: boolean,
+  errorSound: boolean
 };
 
 let stationNumber: 0 | 1 | 2 = 0;
@@ -43,8 +57,10 @@ class App extends Component<{}, State> {
       solves: 0,
       time: 25,
       websiteID: 0,
+      solvedSound: false,
+      errorSound: false
     };
-    subscribeToSocket(this.updateGameState.bind(this));
+    subscribeToSocket(this.updateGameState.bind(this), this.solvedSound.bind(this), this.errorSound.bind(this));
   }
 
   updateGameState(gameState: GameState) {
@@ -55,7 +71,9 @@ class App extends Component<{}, State> {
       tiles: null,
       solves: gameState.solves[stationNumber],
       time: gameState.time,
-      websiteID: this.state.websiteID
+      websiteID: this.state.websiteID,
+      solvedSound: this.state.solvedSound,
+      errorSound: this.state.errorSound,
     };
     let puz: Puzzle | null = gameState.puzzles[stationNumber];
     if (puz) {
@@ -65,6 +83,22 @@ class App extends Component<{}, State> {
       newState.solved = puz.solved;
     }
     this.setState(newState);
+  }
+
+  solvedSound(data: number) {
+    if (data !== stationNumber) {
+      return;
+    }
+    this.setState({ solvedSound: true });
+    setTimeout(() => this.setState({ solvedSound: false }), 2000);
+  }
+
+  errorSound(data: number) {
+    if (data !== stationNumber) {
+      return;
+    }
+    this.setState({ errorSound: true });
+    setTimeout(() => this.setState({ errorSound: false }), 1000);
   }
 
   render() {
@@ -96,7 +130,7 @@ class App extends Component<{}, State> {
   }
 
   renderPlaying() {
-    let { squareMap, tiles, websiteID, solves, time, solved } = this.state;
+    let { squareMap, tiles, websiteID, solves, time, solved, solvedSound, errorSound } = this.state;
     let squares = [0, 1, 2, 3].map(row => [0, 1, 2, 3].map(col => (
       <Square
         key={"" + row + col}
@@ -130,6 +164,14 @@ class App extends Component<{}, State> {
         <div className="timebox">
           Time: {time}
         </div>
+        {solvedSound ?
+          //@ts-ignore
+          <Sound url={process.env.PUBLIC_URL + "/correct.wav"} playStatus={Sound.status.PLAYING} /> : ''
+        }
+        {errorSound ?
+          //@ts-ignore
+          <Sound url={process.env.PUBLIC_URL + "/error.mp3"} playStatus={Sound.status.PLAYING} /> : ''
+        }
       </div>
     );
   }
