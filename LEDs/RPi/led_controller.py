@@ -1,5 +1,8 @@
 import smbus
 import time
+import socketio
+
+station_number = 0
 
 bus = smbus.SMBus(1)
 
@@ -16,8 +19,9 @@ CLR_OFF = 0x05
 ARDUINO_ADDR = 0x08
 DELAY_TIME = .02
 
+
 def update_leds(color_string):
-    if(len(color_string) != 16):
+    if (len(color_string) != 16):
         print('ERROR: Please provide a string of length 16!')
         return
     data = []
@@ -30,7 +34,7 @@ def update_leds(color_string):
             data += [CLR_BLUE]
         elif c is ' ':
             data += [CLR_OFF]
-        elif c is 'w' :
+        elif c is 'w':
             data += [CLR_WHITE]
         elif c is 'y':
             data += [CLR_YELLOW]
@@ -40,5 +44,41 @@ def update_leds(color_string):
 
     bus.write_block_data(ARDUINO_ADDR, CMD_UPDATE, data)
 
+
 def play_idle():
     bus.write_byte(ARDUINO_ADDR, CMD_IDLE)
+
+
+sio = socketio.Client()
+
+
+@sio.on('connect')
+def on_connect(sid, environ):
+    print('connection established')
+
+
+@sio.on('game-state-updated')
+def gameStateUpdated(data):
+    def enc(n):
+        if n == 0:
+            return ' '
+        else:
+            return 'y'
+
+    if data['phase'] == 1:
+        play_idle()
+    elif data['phase'] == 3:
+        if data['puzzles'][station_number]:
+            grid = data['puzzles'][station_number]['grid']
+            snake_order = [[0, 0], [0, 1], [0, 2], [0, 3], [1, 3], [1, 2],
+                           [1, 1], [1, 0], [2, 0], [2, 1], [2, 2], [2, 3],
+                           [3, 3], [3, 2], [3, 1], [3, 0]]
+            data = [grid[a[0]][a[1]] for a in snake_order]
+            data = ''.join([enc(d) for d in data])
+            update_leds(data)
+    else:
+        update_leds(" " * 16)
+
+
+sio.connect("http://monitor-5.local:3000")
+sio.wait()
