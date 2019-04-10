@@ -49,8 +49,7 @@ type PuzzleProps = { puzzle: Puzzle };
 function PuzzleDisplay(props: PuzzleProps) {
   let { grid, ingredients, id, solved } = props.puzzle;
 
-  let positions = [0, 1, 2, 3].map(i => [[i, 0], [i, 1], [i, 2], [i, 3]]).flat();
-
+  let positions = [[0, 0], [0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2], [1, 3], [2, 0], [2, 1], [2, 2], [2, 3]];
   return (<div className="puzzle">
     <div className={solved ? "puzzle-grid puzzle-grid-solved" : "puzzle-grid"}>
       <img className="puzzlepic" src={images[id % images.length]} />
