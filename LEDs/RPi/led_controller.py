@@ -45,6 +45,13 @@ def update_leds(color_string):
     bus.write_block_data(ARDUINO_ADDR, CMD_UPDATE, data)
 
 
+def flash_wildly():
+    strings = ["r" * 16, "b" * 16, "g" * 16]
+    for i in range(0, 10):
+        update_leds(strings[i % 3])
+        time.sleep(0.1)
+
+
 def play_idle():
     bus.write_byte(ARDUINO_ADDR, CMD_IDLE)
 
@@ -55,6 +62,12 @@ sio = socketio.Client()
 @sio.on('connect')
 def on_connect(sid, environ):
     print('connection established')
+
+
+@sio.on('solved-puzzle-sound')
+def on_solved(data):
+    if data == station_number:
+        flash_wildly()
 
 
 @sio.on('game-state-updated')
