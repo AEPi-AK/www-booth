@@ -1,5 +1,6 @@
 import cv2
-
+import socketio
+import base64
 
 # Given an OpenCV image
 # Returns a list of lists, where the sublists represent rows of the grid.
@@ -9,16 +10,29 @@ import cv2
 #   1    => for green
 #   2    => for blue
 # Or returns None (for safety, in the case where it cannot recognize the grid)
+
+sio = socketio.Client()
+
+while True:
+    try:
+        sio.connect("http://master-server.local:3000")
+        break
+    except Exception:
+        continue
+
+
 def get_color_matrix(image):
     def threshold_image(img):
         # Threshold image
         blur = cv2.GaussianBlur(img, (5, 5), 1)
-        ret3, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        ret3, thresh = cv2.threshold(blur, 0, 255,
+                                     cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
         return thresh
 
     def find_grid(img):
-        def find_largest_contour(cons): # Used to pick out grid from other shape
+        def find_largest_contour(
+                cons):  # Used to pick out grid from other shape
             if len(cons) < 1:
                 return False
             max_index = 0
@@ -28,7 +42,8 @@ def get_color_matrix(image):
             return cons[max_index]
 
         # cv2.RETR_EXTERNAL argument used to limit search to outermost contours
-        contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL,
+                                               cv2.CHAIN_APPROX_SIMPLE)
         border = find_largest_contour(contours)
 
         x, y, w, h = cv2.boundingRect(border)
@@ -78,10 +93,13 @@ def get_color_matrix(image):
             sample_height = int(cell_height / 4)
 
             # top left corner of sample
-            left_x = int(x + cell_width * i + (cell_width / 2) - sample_width / 2)
-            top_y = int(y + cell_height * j + (cell_height / 2) - sample_height / 2)
+            left_x = int(x + cell_width * i + (cell_width / 2) -
+                         sample_width / 2)
+            top_y = int(y + cell_height * j + (cell_height / 2) -
+                        sample_height / 2)
 
-            if top_y + sample_height > img.shape[1] or left_x + sample_width > img.shape[0]:
+            if top_y + sample_height > img.shape[
+                    1] or left_x + sample_width > img.shape[0]:
                 return None
 
             # return img[left_x][top_y]
@@ -90,7 +108,8 @@ def get_color_matrix(image):
             for dx in range(sample_width):
                 for dy in range(sample_height):
                     pixel = img[left_x + dx][top_y + dy]
-                    pix_r, pix_g, pix_b = pixel[2], pixel[1], pixel[0]  # Indices backwards b/c numpy arrays are weird
+                    pix_r, pix_g, pix_b = pixel[2], pixel[1], pixel[
+                        0]  # Indices backwards b/c numpy arrays are weird
                     pix_color = check_color(pix_r, pix_g, pix_b)
                     if pix_color == "Blank": blank_count += 1
                     elif pix_color == "Red": red_count += 1
@@ -115,3 +134,17 @@ def get_color_matrix(image):
     thresh = threshold_image(gray)
     x, y, w, h = find_grid(thresh)
     return get_colors(image, x, y, w, h)
+
+
+@sio.on('image-process')
+def detect_image(data):
+    imgdata = base64.decode(data["image"])
+    nparr = np.fromstring(data, np.uint8)
+    nparr = np.reshape(nparr, (480, 640, 4))
+    nparr[:, :, [0, 1, 2]] = nparr[:, :, [2, 1, 0]]
+    detected = get_color_matrix(nparr)
+    console.log("detected at station " + str(data["station"]))
+    sio.emit("submission", {"station": data["station"], "grid": detected})
+
+
+sio.wait()

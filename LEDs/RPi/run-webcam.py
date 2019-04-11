@@ -3,6 +3,7 @@ import pygame.camera
 from pygame.locals import *
 import base64
 import RPi.GPIO as GPIO
+import cv2
 
 station_number = 0
 
@@ -81,4 +82,14 @@ while True:
         continue
 
 c = Capture()
+
+import threading
+
+
+def printit():
+    threading.Timer(5.0, printit).start()
+    cv2.imshow(c.snapshot)
+
+
+printit()
 c.main()
