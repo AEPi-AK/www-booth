@@ -4,16 +4,17 @@ from pygame.locals import *
 import base64
 import RPi.GPIO as GPIO
 import cv2
+import socketio
 
 station_number = 0
 
 pygame.init()
 pygame.camera.init()
 
+BUTTON_PIN = 17
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-BUTTON_PIN = 17
 
 sio = socketio.Client()
 
