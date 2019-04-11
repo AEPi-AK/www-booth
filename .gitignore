@@ -65,3 +65,5 @@ dist
 
 # High score file
 master-server/high-score.txt
+
+.pyc

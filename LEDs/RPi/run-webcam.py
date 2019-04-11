@@ -62,10 +62,11 @@ class Capture(object):
                     going = False
 
             self.get_and_flip()
-            if debounce > 0:
+            if read_button() and debounce > 0:
                 debounce -= 1
-            if read_button() and debounce == 0:
-                debounce = 10
+            if not read_button() and debounce == 0:
+                print("sending data")
+                debounce = 100
                 data = pygame.image.tostring(self.snapshot, "RGB")
                 data = base64.b64encode(data)
                 sio.emit('image-send', {
@@ -83,4 +84,8 @@ while True:
 
 c = Capture()
 
-c.main()
+while True:
+    try:
+        c.main()
+    except Exception:
+        continue
