@@ -3,7 +3,6 @@ import pygame.camera
 from pygame.locals import *
 import base64
 import RPi.GPIO as GPIO
-import cv2
 import socketio
 
 station_number = 0
@@ -77,20 +76,11 @@ class Capture(object):
 
 while True:
     try:
-        sio.connect("http://192.168.1.3:3000")
+        sio.connect("http://192.168.1.8:3000")
         break
     except Exception:
         continue
 
 c = Capture()
 
-import threading
-
-
-def printit():
-    threading.Timer(5.0, printit).start()
-    cv2.imshow(c.snapshot)
-
-
-printit()
 c.main()
