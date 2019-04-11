@@ -5,11 +5,7 @@ import RPi.GPIO as GPIO
 
 station_number = 0
 
-BUTTON_PIN = 17
-
 bus = smbus.SMBus(1)
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 CMD_UPDATE = 0x05
 CMD_IDLE = 0x06
@@ -49,17 +45,17 @@ def update_leds(color_string):
 
     bus.write_block_data(ARDUINO_ADDR, CMD_UPDATE, data)
 
+
 def flash_wildly():
     strings = ["r" * 16, "b" * 16, "g" * 16]
     for i in range(0, 10):
         update_leds(strings[i % 3])
         time.sleep(0.1)
 
+
 def play_idle():
     bus.write_byte(ARDUINO_ADDR, CMD_IDLE)
 
-def read_button():
-    return (GPIO.input(BUTTON_PIN))
 
 sio = socketio.Client()
 
@@ -98,5 +94,9 @@ def gameStateUpdated(data):
         update_leds(" " * 16)
 
 
-sio.connect("http://monitor-5.local:3000")
-sio.wait()
+while True:
+    try:
+        sio.connect("http://monitor-5.local:3000")
+        break
+    except Exception:
+        continue
