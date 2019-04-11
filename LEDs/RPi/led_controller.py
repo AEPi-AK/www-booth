@@ -96,7 +96,9 @@ def gameStateUpdated(data):
 
 while True:
     try:
-        sio.connect("http://monitor-5.local:3000")
+        sio.connect("http://192.168.1.3:3000")
         break
     except Exception:
         continue
+
+sio.wait()

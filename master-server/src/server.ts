@@ -538,4 +538,8 @@ io.on('connect', function (socket: SocketIO.Socket) {
     hardware_state.disabledTiles.push({ color, type });
     updatedHardwareState();
   })
+
+  socket.on('image-send', function (data) {
+    io.sockets.emit('image-process', data);
+  })
 });

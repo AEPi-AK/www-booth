@@ -5,7 +5,7 @@ import Socket from 'socket.io-client';
 import './App.css';
 import PuzzleDisplay from './Puzzle';
 
-var socket: SocketIOClient.Socket = Socket('http://monitor-5.local:3000/');
+var socket: SocketIOClient.Socket = Socket('http://192.168.1.3:3000/');
 
 function subscribeToSocket(gameStateCallback: (gs: GameState) => void) {
   socket.on('connect', () => {

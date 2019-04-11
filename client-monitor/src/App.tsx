@@ -8,7 +8,7 @@ import Sound from 'react-sound';
 
 import Socket from 'socket.io-client';
 
-var socket: SocketIOClient.Socket = Socket('http://monitor-5.local:3000/');
+var socket: SocketIOClient.Socket = Socket('http://192.168.1.3.local:3000/');
 
 type GameStateCallback = ((gs: GameState) => void);
 
