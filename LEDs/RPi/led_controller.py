@@ -43,7 +43,10 @@ def update_leds(color_string):
             print('ERROR: String contains invalid character!')
             return
 
-    bus.write_block_data(ARDUINO_ADDR, CMD_UPDATE, data)
+    try:
+        bus.write_block_data(ARDUINO_ADDR, CMD_UPDATE, data)
+    except Exception:
+        pass
 
 
 def flash_wildly():
@@ -54,7 +57,10 @@ def flash_wildly():
 
 
 def play_idle():
-    bus.write_byte(ARDUINO_ADDR, CMD_IDLE)
+    try:
+        bus.write_byte(ARDUINO_ADDR, CMD_IDLE)
+    except Exception:
+        pass
 
 
 sio = socketio.Client()

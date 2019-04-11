@@ -110,8 +110,9 @@ class App extends Component<{}, State> {
       case GamePhase.PostGame:
         return this.renderPostgame();
       case GamePhase.Idle:
-      default:
         return this.renderIdle();
+      case GamePhase.NotConnected:
+        return <div>Not connected :-(</div>;
     }
   }
 
