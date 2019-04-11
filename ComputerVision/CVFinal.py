@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 import socketio
 import base64
 
@@ -40,9 +41,8 @@ def get_color_matrix(image):
                 if cv2.contourArea(cons[i]) > cv2.contourArea(cons[max_index]):
                     max_index = i
             return cons[max_index]
-
         # cv2.RETR_EXTERNAL argument used to limit search to outermost contours
-        contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL,
+        _, contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL,
                                                cv2.CHAIN_APPROX_SIMPLE)
         border = find_largest_contour(contours)
 
@@ -138,12 +138,17 @@ def get_color_matrix(image):
 
 @sio.on('image-process')
 def detect_image(data):
-    imgdata = base64.decode(data["image"])
-    nparr = np.fromstring(data, np.uint8)
-    nparr = np.reshape(nparr, (480, 640, 4))
+    print("recieved data")
+    imgdata = base64.b64decode(data["data"])
+    nparr = np.fromstring(imgdata, np.uint8)
+    nparr = np.reshape(nparr, (480, 640, 3))
     nparr[:, :, [0, 1, 2]] = nparr[:, :, [2, 1, 0]]
+    cv2.imshow('im', nparr)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
     detected = get_color_matrix(nparr)
-    console.log("detected at station " + str(data["station"]))
+    print("detected at station " + str(data["station"]))
+    print(detected)
     sio.emit("submission", {"station": data["station"], "grid": detected})
 
 
